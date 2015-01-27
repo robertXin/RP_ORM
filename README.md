@@ -5,6 +5,7 @@
 php 5.3  pdo
 
 # Easy wear
+```c
 $obj = new ormclass(array(
 	'datasource'=>'mysql',
 	'host' => 'localhost',
@@ -18,3 +19,4 @@ foreach ($obj->query($sql) as $key => $value) {
 	echo $key;
 	var_dump($value);
 }
+```
