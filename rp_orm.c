@@ -157,7 +157,6 @@ ZEND_METHOD(ormclass,__construct)
 
     sprintf(dns,"%s:dbname=%s;host=%s;port=%s",s,dbname,h,port);
 
-    printf("%s%s%s\n", dns,username,password);
     zval *obj;
     MAKE_STD_ZVAL(obj);
 
@@ -267,7 +266,7 @@ PHP_FUNCTION(test_pdo)
     pdo_dbh_ce = php_pdo_get_dbh_ce();
     object_init_ex(obj, pdo_dbh_ce);
 
-    luoxin_call_user_method(NULL,obj,"__construct","sss","mysql:dbname=test;host=localhost",sizeof("mysql:dbname=test;host=localhost") -1,"root",sizeof("root") - 1,"root@sn201310",sizeof("root@sn201310") -1);
+    luoxin_call_user_method(NULL,obj,"__construct","sss","mysql:dbname=test;host=localhost",sizeof("mysql:dbname=test;host=localhost") -1,"xxx",sizeof("xxx") - 1,"xxxx",sizeof("xxxxx") -1);
     luoxin_call_user_method(NULL,obj,"query","s","select * from test",sizeof("select * from test") - 1);
     COPY_PZVAL_TO_ZVAL(*pobj,*fci.retval_ptr_ptr);
     // efree(fci);
