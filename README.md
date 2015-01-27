@@ -21,3 +21,4 @@ foreach ($obj->query($sql) as $key => $value) {
 	var_dump($value);
 }
 ```
+目前只支持实例化和query操作，日后会加以完善
