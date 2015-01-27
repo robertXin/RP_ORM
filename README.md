@@ -1,8 +1,9 @@
 # RP_ORM
-简单的orm
+使用pdo实现的简单的orm
 
 # Requirements
-php 5.3  pdo
+* php 5.3
+* pdo
 
 # Easy wear
 ```c
