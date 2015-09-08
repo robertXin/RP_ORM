@@ -85,36 +85,41 @@ static void php_rp_orm_init_globals(zend_rp_orm_globals *rp_orm_globals)
 */
 /* }}} */
 
-ZEND_METHOD(ormclass,query)
+static PHP_METHOD(ormclass,query)
 {
     zend_class_entry *ce;
-    zval *obj,*sql;
+    zval *obj;
+    char *sql;
+    int len;
 
     ce = Z_OBJCE_P(getThis());
     obj = zend_read_property(ce,getThis(),"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
     // obj = zend_read_static_property(ce,"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z",&sql) == FAILURE)
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s|l",&sql,&len) == FAILURE)
     {
         RETURN_NULL();
     }
-    pdo_query(return_value,obj,Z_STRVAL_P(sql),Z_STRLEN_P(sql) TSRMLS_DC);
+
+    pdo_query(return_value,obj,sql,len TSRMLS_DC);
 }
 
 /* get unique primary columnname*/
 ZEND_METHOD(ormclass,getUniPri)
 {
     zend_class_entry *ce;
-    zval *obj,*tableName;
+    zval *obj;
+    char *tableName;
+    int len;
     char sql[100];
 
     ce = Z_OBJCE_P(getThis());
     obj = zend_read_property(ce,getThis(),"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
     // obj = zend_read_static_property(ce,"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z",&tableName) == FAILURE)
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s|l",&tableName,&len) == FAILURE)
     {
         RETURN_NULL();
     }
-    sprintf(sql,"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='%s';",Z_STRVAL_P(tableName));
+    sprintf(sql,"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='%s';",tableName);
     // printf("%s",sql);
     pdo_query(return_value,obj,sql,sizeof(sql)-1 TSRMLS_DC);
 }
