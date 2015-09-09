@@ -15,14 +15,41 @@ $obj = new ormclass(array(
     'database' => 'test',
     'port' => '3306')
 );
-// var_dump($obj);
-$sql = 'select * from tags;';
+// // var_dump($obj);
+$sql = "select * from documents where id='1';";
+print_r($obj->query($sql));
+
+$sql = "select * from documents where id='1';";
 print_r($obj->query($sql));
 
 
 $a = $obj->getUniPri('documents');
 print_r($a);
-```
-目前只支持实例化和query操作，日后会加以完善
 
-2015-9-8 增加getUniPri方法，获取表的主键，返回二维数组
+$obj->setTableName('documents');
+$obj->setPriKey('id');
+
+print_r($obj->findOne('1'));
+print_r($obj->findOne('2','id'));
+```
+
+## query(string sql)
+返回二维array | false
+
+## getUniPri(string table_name)
+返回二维array | false
+
+## setTableName(string table_name)
+返回bool
+
+## setPriKey(string column)
+返回bool
+
+## findOne(string val [, string column])
+返回一维数组 | false
+
+
+
+
+
+
