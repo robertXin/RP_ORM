@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2010 The PHP Group                                |
+  | Copyright (c) 1997-2015 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,23 +16,25 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: header 297205 2010-03-30 21:09:07Z johannes $ */
+/* $Id$ */
 
 #ifndef PHP_RP_ORM_H
 #define PHP_RP_ORM_H
 
 #include "ext/pdo/php_pdo.h"
 #include "ext/pdo/php_pdo_driver.h"
-
+  
 extern zend_module_entry rp_orm_module_entry;
 #define phpext_rp_orm_ptr &rp_orm_module_entry
 
+#define PHP_RP_ORM_VERSION "0.1.0" /* Replace with version number for your extension */
+
 #ifdef PHP_WIN32
-#	define PHP_RP_ORM_API __declspec(dllexport)
+# define PHP_RP_ORM_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
-#	define PHP_RP_ORM_API __attribute__ ((visibility("default")))
+# define PHP_RP_ORM_API __attribute__ ((visibility("default")))
 #else
-#	define PHP_RP_ORM_API
+# define PHP_RP_ORM_API
 #endif
 
 #ifdef ZTS
@@ -45,15 +47,14 @@ PHP_RINIT_FUNCTION(rp_orm);
 PHP_RSHUTDOWN_FUNCTION(rp_orm);
 PHP_MINFO_FUNCTION(rp_orm);
 
-PHP_FUNCTION(test_pdo);	/* For testing, remove later. */
 
 /* 
-  	Declare any global variables you may need between the BEGIN
-	and END macros here:     
+    Declare any global variables you may need between the BEGIN
+  and END macros here:     
 
 ZEND_BEGIN_MODULE_GLOBALS(rp_orm)
-	long  global_value;
-	char *global_string;
+  long  global_value;
+  char *global_string;
 ZEND_END_MODULE_GLOBALS(rp_orm)
 */
 
@@ -73,7 +74,7 @@ ZEND_END_MODULE_GLOBALS(rp_orm)
 #define RP_ORM_G(v) (rp_orm_globals.v)
 #endif
 
-#endif	/* PHP_RP_ORM_H */
+#endif  /* PHP_RP_ORM_H */
 
 
 /*

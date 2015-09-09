@@ -7,15 +7,15 @@ dnl without editing.
 
 dnl If your extension references something external, use with:
 
-PHP_ARG_WITH(rp_orm, for rp_orm support,
-Make sure that the comment is aligned:
-[  --with-rp_orm             Include rp_orm support])
+dnl PHP_ARG_WITH(rp_orm, for rp_orm support,
+dnl Make sure that the comment is aligned:
+dnl [  --with-rp_orm             Include rp_orm support])
 
 dnl Otherwise use enable:
 
-dnl PHP_ARG_ENABLE(rp_orm, whether to enable rp_orm support,
+PHP_ARG_ENABLE(rp_orm, whether to enable rp_orm support,
 dnl Make sure that the comment is aligned:
-dnl [  --enable-rp_orm           Enable rp_orm support])
+[  --enable-rp_orm           Include rp_orm support])
 
 if test "$PHP_RP_ORM" != "no"; then
   dnl Write more examples of tests here...
@@ -49,12 +49,12 @@ if test "$PHP_RP_ORM" != "no"; then
 
   dnl PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
   dnl [
-  dnl   PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $RP_ORM_DIR/lib, RP_ORM_SHARED_LIBADD)
+  dnl   PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $RP_ORM_DIR/$PHP_LIBDIR, RP_ORM_SHARED_LIBADD)
   dnl   AC_DEFINE(HAVE_RP_ORMLIB,1,[ ])
   dnl ],[
   dnl   AC_MSG_ERROR([wrong rp_orm lib version or lib not found])
   dnl ],[
-  dnl   -L$RP_ORM_DIR/lib -lm
+  dnl   -L$RP_ORM_DIR/$PHP_LIBDIR -lm
   dnl ])
   dnl
   dnl PHP_SUBST(RP_ORM_SHARED_LIBADD)
