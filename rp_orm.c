@@ -37,7 +37,7 @@ ZEND_DECLARE_MODULE_GLOBALS(rp_orm)
 static int le_rp_orm;
 zend_class_entry *ormclass_ce;
 zend_fcall_info luoxin_call_user_method(zval** retval, zval* obj, char* function_name, char* paras, ...);
-void pdo_query(zval* return_value, zval* pdo_obj,char* sql,int sql_len TSRMLS_DC);
+void pdo_query(zval* return_value, zval* pdo_obj,char* sql,int sql_len,int one TSRMLS_DC);
 
 
 /* {{{ rp_orm_module_entry
@@ -95,12 +95,12 @@ static PHP_METHOD(ormclass,query)
     ce = Z_OBJCE_P(getThis());
     obj = zend_read_property(ce,getThis(),"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
     // obj = zend_read_static_property(ce,"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s|l",&sql,&len) == FAILURE)
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s",&sql,&len) == FAILURE)
     {
-        RETURN_NULL();
+        RETURN_FALSE;
     }
 
-    pdo_query(return_value,obj,sql,len TSRMLS_DC);
+    pdo_query(return_value,obj,sql,len,0 TSRMLS_DC);
 }
 
 /* get unique primary columnname*/
@@ -115,13 +115,77 @@ ZEND_METHOD(ormclass,getUniPri)
     ce = Z_OBJCE_P(getThis());
     obj = zend_read_property(ce,getThis(),"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
     // obj = zend_read_static_property(ce,"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
-    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s|l",&tableName,&len) == FAILURE)
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s",&tableName,&len) == FAILURE)
     {
-        RETURN_NULL();
+        RETURN_FALSE;
     }
     sprintf(sql,"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE TABLE_NAME='%s';",tableName);
     // printf("%s",sql);
-    pdo_query(return_value,obj,sql,sizeof(sql)-1 TSRMLS_DC);
+    pdo_query(return_value,obj,sql,strlen(sql),0 TSRMLS_DC);
+}
+
+/* 设置表的主键 */
+ZEND_METHOD(ormclass,setPriKey)
+{
+    zend_class_entry *ce;
+    zval *priKey;
+
+    ce = Z_OBJCE_P(getThis());
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z",&priKey) == FAILURE)
+    {
+        RETURN_FALSE;
+    }
+    zend_update_property(ce,getThis(),"pri_key",sizeof("pri_key") - 1,priKey TSRMLS_CC);
+    RETURN_BOOL(1);
+}
+
+/* 设置表名 */
+ZEND_METHOD(ormclass,setTableName)
+{
+    zend_class_entry *ce;
+    zval *tableName;
+
+    ce = Z_OBJCE_P(getThis());
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z",&tableName) == FAILURE)
+    {
+        RETURN_FALSE;
+    }
+    zend_update_property(ce,getThis(),"table_name",sizeof("table_name") - 1,tableName TSRMLS_CC);
+    RETURN_BOOL(1);
+}
+
+/* 通过主键获取数据 */
+ZEND_METHOD(ormclass,findOne)
+{
+    zend_class_entry *ce;
+    zval *obj,*table_name,*pri_key;
+    char *val,*pri = NULL;
+    int vlen,plen;
+    char sql[100];
+
+    ce = Z_OBJCE_P(getThis());
+    obj = zend_read_property(ce,getThis(),"pdo_obj",sizeof("pdo_obj") - 1,0 TSRMLS_CC);
+    table_name = zend_read_property(ce,getThis(),"table_name",sizeof("table_name") - 1,0 TSRMLS_CC);
+
+    if(!obj || !table_name)
+    {
+        RETURN_FALSE;
+    }
+    if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"s|s",&val,&vlen,&pri,&plen) == FAILURE)
+    {
+        RETURN_FALSE;
+    }
+    if(!pri)
+    {
+        pri_key = zend_read_property(ce,getThis(),"pri_key",sizeof("pri_key") - 1,0 TSRMLS_CC);
+        if(!pri_key)
+        {
+            RETURN_FALSE;
+        }
+        pri = Z_STRVAL_P(pri_key);
+    }
+    sprintf(sql,"select * from %s where %s='%s';",Z_STRVAL_P(table_name),pri,val);
+    pdo_query(return_value,obj,sql,strlen(sql),1 TSRMLS_DC);
 }
 
 ZEND_METHOD(ormclass,__construct)
@@ -136,7 +200,7 @@ ZEND_METHOD(ormclass,__construct)
     ce = Z_OBJCE_P(getThis());
     if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"z",&config) == FAILURE)
     {
-        RETURN_NULL();
+        RETURN_FALSE;
     }
 
     count = zend_hash_num_elements(Z_ARRVAL_P(config));
@@ -190,6 +254,9 @@ zend_function_entry ormclass_method[]=
 {
     PHP_ME(ormclass,query,NULL,ZEND_ACC_PUBLIC)
     PHP_ME(ormclass,getUniPri,NULL,ZEND_ACC_PUBLIC)
+    PHP_ME(ormclass,findOne,NULL,ZEND_ACC_PUBLIC)
+    PHP_ME(ormclass,setTableName,NULL,ZEND_ACC_PUBLIC)
+    PHP_ME(ormclass,setPriKey,NULL,ZEND_ACC_PUBLIC)
     PHP_ME(ormclass,__construct,NULL,ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
     PHP_FE_END
 };
@@ -203,6 +270,9 @@ PHP_MINIT_FUNCTION(rp_orm)
 
     ormclass_ce = zend_register_internal_class(&orm_ce TSRMLS_CC);
     zend_declare_property_null(ormclass_ce,"pdo_obj",strlen("pdo_obj"),ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(ormclass_ce,"table_name",strlen("table_name"),ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_null(ormclass_ce,"pri_key",strlen("pri_key"),ZEND_ACC_PUBLIC TSRMLS_CC);
+    
 
     /* If you have INI entries, uncomment these lines 
     REGISTER_INI_ENTRIES();
@@ -266,11 +336,20 @@ PHP_MINFO_FUNCTION(rp_orm)
    follow this convention for the convenience of others editing your code.
 */
 
-void pdo_query(zval* return_value,zval* pdo_obj,char* sql, int sql_len TSRMLS_DC){
+void pdo_query(zval* return_value,zval* pdo_obj,char* sql, int sql_len,int one TSRMLS_DC){
     zend_fcall_info fci,fci2;
     fci = luoxin_call_user_method(NULL,pdo_obj,"query","s",sql,sql_len);
-    fci2 = luoxin_call_user_method(NULL,*fci.retval_ptr_ptr,"fetchAll","l",2);
+    if(one)
+    {
+        fci2 = luoxin_call_user_method(NULL,*fci.retval_ptr_ptr,"fetch","l",2);
+    }
+    else
+    {
+        fci2 = luoxin_call_user_method(NULL,*fci.retval_ptr_ptr,"fetchAll","l",2);
+    }
     COPY_PZVAL_TO_ZVAL(*return_value, *fci2.retval_ptr_ptr);
+    // efree(*fci.retval_ptr_ptr);
+    // efree(*fci2.retval_ptr_ptr);
 }
 
 zend_fcall_info luoxin_call_user_method(zval** retval, zval* obj, char* function_name, char* paras, ...)
